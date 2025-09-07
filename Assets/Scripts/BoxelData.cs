@@ -11,7 +11,7 @@ public class BoxelData
 }
 
 [System.Serializable]
-public class BoxelDataCollection
+public class BoxelDataList
 {
-    public List<BoxelData> boxels = new List<BoxelData>();
+    public List<BoxelData> items;
 }
