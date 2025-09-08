@@ -2,156 +2,114 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 
 public class NoiseGen : MonoBehaviour
 {
-    [SerializeField] private int noise_width = 10;
-    [SerializeField] private int noise_height = 10;
-    [SerializeField] private GameObject boxel;
-    [SerializeField] private Material whiteCol; 
-    [SerializeField] private Material blackCol;
-    [SerializeField] private float chanceRange = 0.5f;
-    [SerializeField] private int iterations = 5;
-    [SerializeField] private bool reset = false;
+    [SerializeField] public int noise_width;
+    [SerializeField] public int noise_height;
+    [SerializeField] public float chanceRange;
 
-    private List<GameObject> currentBoxels = new List<GameObject>();
+    private int type;
 
-    private string JsonPath => Application.dataPath + "/boxelgrid.json";
+    [SerializeField] public bool reset = false;
+    [SerializeField] public bool cel = false;
 
+    BoxelDataList dataList = new BoxelDataList();
+    [SerializeField] private CellularAutomata cellularAutomata;
+
+    [SerializeField] private BoxelInstancer instancer;
+
+    private string path => Application.dataPath + "/boxelgrid.bin";
+
+    // Start is called before the first frame update
     void Start()
     {
-        DeleteJsonFile();
-        Noise_Start();          
-        int[,] grid = LoadGridFromJson(); 
-        CellularAutomaton(ref grid, iterations); 
-        BuildBoxelsFromGrid(grid);       
+        Delete_binary_file();
+        Noise_Start();
     }
 
     private void Noise_Start()
     {
-        BoxelDataCollection dataCollection = new BoxelDataCollection();
+        dataList.items = new List<BoxelData>();
 
         for (int i = 0; i < noise_width; i++)
         {
             for (int j = 0; j < noise_height; j++)
             {
                 float chance = Random.Range(0.0f, 1.0f);
-                int type = (chance > chanceRange) ? 0 : 1;
 
-                dataCollection.boxels.Add(new BoxelData
+                if (chance > chanceRange)
+                {
+                    type = 0;
+                }
+                else
+                {
+                    type = 1;
+                }
+
+                BoxelData data = new BoxelData
                 {
                     x = i,
                     y = j,
                     type = type
-                });
+                };
+
+                dataList.items.Add(data);
             }
         }
 
-        string fullJson = JsonUtility.ToJson(dataCollection, true);
-        File.WriteAllText(JsonPath, fullJson);
-    }
+        // Guardar binario compacto
+        var types = dataList.items.OrderBy(d => d.x).ThenBy(d => d.y).Select(d => d.type).ToList();
+        BoxelBinary.WriteBitPacked(path, noise_width, noise_height, types);
 
-    private int[,] LoadGridFromJson()
-    {
-        if (!File.Exists(JsonPath)) return null;
-
-        string json = File.ReadAllText(JsonPath);
-        BoxelDataCollection dataCollection = JsonUtility.FromJson<BoxelDataCollection>(json);
-
-        int[,] grid = new int[noise_width, noise_height];
-        foreach (var boxel in dataCollection.boxels)
+        // Actualizar instancer para dibujar sin GameObjects
+        if (instancer != null)
         {
-            grid[boxel.x, boxel.y] = boxel.type;
-        }
-        return grid;
-    }
-
-    private void CellularAutomaton(ref int[,] grid, int count)
-    {
-        for (int c = 0; c < count; c++)
-        {
-            int[,] tempGrid = (int[,])grid.Clone();
-
-            for (int y = 0; y < noise_height; y++)
-            {
-                for (int x = 0; x < noise_width; x++)
-                {
-                    int neighborWallCount = 0;
-
-                    for (int ny = y - 1; ny <= y + 1; ny++)
-                    {
-                        for (int nx = x - 1; nx <= x + 1; nx++)
-                        {
-                            if (nx >= 0 && nx < noise_width && ny >= 0 && ny < noise_height)
-                            {
-                                if (nx != x || ny != y)
-                                {
-                                    if (tempGrid[nx, ny] == 1) neighborWallCount++;
-                                }
-                            }
-                            else
-                            {
-                                neighborWallCount++;
-                            }
-                        }
-                    }
-
-                    if (neighborWallCount > 4)
-                        grid[x, y] = 1;
-                    else
-                        grid[x, y] = 0;
-                }
-            }
+            instancer.UpdateBatchesFromDataList(dataList.items, noise_width, noise_height, parallel: true);
         }
     }
 
-    private void BuildBoxelsFromGrid(int[,] grid)
+    private void Delete_binary_file()
     {
-        for (int i = 0; i < noise_width; i++)
+        dataList.items = new List<BoxelData>();
+
+        if (File.Exists(path))
         {
-            for (int j = 0; j < noise_height; j++)
-            {
-                GameObject boxelinstance = Instantiate(boxel, new Vector3(i, 0, j), Quaternion.identity);
-
-                if (grid[i, j] == 0)
-                    boxelinstance.GetComponent<Renderer>().material = whiteCol;
-                else
-                    boxelinstance.GetComponent<Renderer>().material = blackCol;
-
-                currentBoxels.Add(boxelinstance);
-            }
+            File.Delete(path);
         }
     }
 
-    private void DeleteJsonFile()
+    private void Delete_Boxels()
     {
-        if (File.Exists(JsonPath))
+        // ya no destruimos GameObjects; limpiar instancer y la lista
+        if (instancer != null)
         {
-            File.Delete(JsonPath);
+            instancer.Clear();
         }
     }
 
-    private void DeleteBoxels()
-    {
-        foreach (GameObject boxel in currentBoxels)
-        {
-            Destroy(boxel);
-        }
-        currentBoxels.Clear();
-    }
-
+    // Update is called once per frame
     void Update()
     {
         if (reset)
         {
             reset = false;
-            DeleteJsonFile();
-            DeleteBoxels();
-
+            Delete_binary_file();
+            Delete_Boxels();
             Noise_Start();
-            int[,] grid = LoadGridFromJson();
-            CellularAutomaton(ref grid, iterations);
-            BuildBoxelsFromGrid(grid);
+        }
+
+        if (cel)
+        {
+            cel = false;
+
+            // NO eliminar la previsualización aquí — queremos verla antes de ejecutar el autómata.
+            // Iniciar autómata (ExecuteAutomata delega a la versión async)
+            if (cellularAutomata != null)
+            {
+                cellularAutomata.ExecuteAutomata();
+            }
         }
     }
 }
