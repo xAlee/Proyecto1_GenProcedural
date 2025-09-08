@@ -64,8 +64,41 @@ PrefabInstance:
       propertyPath: m_Name
       value: building_A
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 693d05a5a21416143812a56c2bc7d663, type: 3}
+      propertyPath: m_TagString
+      value: House
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 693d05a5a21416143812a56c2bc7d663, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1638502606312244218}
   m_SourcePrefab: {fileID: 100100000, guid: 693d05a5a21416143812a56c2bc7d663, type: 3}
+--- !u!1 &6365533701003905363 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 693d05a5a21416143812a56c2bc7d663, type: 3}
+  m_PrefabInstance: {fileID: 6095484644513330178}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1638502606312244218
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6365533701003905363}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2, y: 1.6499999, z: 2}
+  m_Center: {x: 0, y: 0.8249999, z: 0}

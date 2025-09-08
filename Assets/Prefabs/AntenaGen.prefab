@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &951579290477743960
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5513790990050107356}
+  - component: {fileID: 554237815964721786}
+  m_Layer: 0
+  m_Name: AntenaGen
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5513790990050107356
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 951579290477743960}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 744.6512, y: 475.9964, z: 145.8418}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &554237815964721786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 951579290477743960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42d879784bff1094685048cb7871f4dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mastPrefab: {fileID: 6462629065298620909, guid: 76bb1fe42311d7b4c95809a9f9f6c93d, type: 3}
+  rodPrefab: {fileID: 6462629065298620909, guid: 76bb1fe42311d7b4c95809a9f9f6c93d, type: 3}
+  panelPrefab: {fileID: 8501495606046656083, guid: 519e87fda00a6c949bdc2d8c08cbc256, type: 3}
+  dishPrefab: {fileID: 0}
+  mastHeight: 4
+  mastRadius: 0.05
+  mastSegments: 2
+  primitiveBaseHeight: 2
+  style: 2
+  complexity: 1
+  dishChance: 0.15
+  useSeed: 1
+  seed: 12345

@@ -5432,10 +5432,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da9d760930f23544b9f8806a166eb81e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  context: 1
   grid: {fileID: 1093218460}
   treePrefab: {fileID: 132179360874914027, guid: f2d96203defe16d4d93a092d5203ea51, type: 3}
+  antennaPrefab: {fileID: 951579290477743960, guid: 3abe773f9ae31494ab43222ea81995c7, type: 3}
   spawnChance: 0.3
-  maxTrees: 10
+  maxObjects: 10
   minSpacing: 2
   extraYOffset: 0
   randomYaw: 1
@@ -5446,6 +5448,7 @@ MonoBehaviour:
     m_Bits: 0
   useSeed: 1
   masterSeed: 123456789
+  houseTag: House
   useCustomRuleOverride: 0
   customRuleF: F[+F]F[-F]F
 --- !u!4 &1089119342
@@ -5600,7 +5603,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Swap Terrain Type
+  m_text: Swap Context
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5759,7 +5762,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1116868427}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1757517855}
+        m_TargetAssemblyTypeName: RuleInputPanel, Assembly-CSharp
+        m_MethodName: OnApplyRuleClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1116868427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9500,6 +9515,7 @@ GameObject:
   - component: {fileID: 1757517851}
   - component: {fileID: 1757517850}
   - component: {fileID: 1757517854}
+  - component: {fileID: 1757517855}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -9617,6 +9633,7 @@ MonoBehaviour:
   panelNoise: {fileID: 1810767153}
   panelTree: {fileID: 1572950495}
   panelCellular: {fileID: 881763574}
+  treeOnGrassSpawner: {fileID: 1089119341}
   noiseGen: {fileID: 1808741177}
   gridGen: {fileID: 1093218460}
   width: {fileID: 791215777}
@@ -9632,6 +9649,20 @@ MonoBehaviour:
   cExtrude: {fileID: 1171777312}
   cCeiling: {fileID: 290492221}
   cam: {fileID: 671400713}
+--- !u!114 &1757517855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757517849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 370f3d09bb8f29647a18bf26f73d2d96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawner: {fileID: 1089119341}
+  ruleInput: {fileID: 693374717}
 --- !u!1 &1803427856
 GameObject:
   m_ObjectHideFlags: 0
@@ -10028,7 +10059,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1810767154
 RectTransform:
   m_ObjectHideFlags: 0

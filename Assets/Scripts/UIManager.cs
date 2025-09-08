@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject panelNoise;
     [SerializeField] private GameObject panelTree;
     [SerializeField] private GameObject panelCellular;
+    [SerializeField] private TreeOnGrassSpawner treeOnGrassSpawner;
 
     [SerializeField] private NoiseGen noiseGen;
     [SerializeField] private GridGen gridGen;
@@ -172,9 +173,16 @@ public class UIManager : MonoBehaviour
     public void SwapTerrainType()
     {
         if (gridGen.currentContext == GridGen.ContextType.SoloTierra)
+        {
             gridGen.currentContext = GridGen.ContextType.ConEdificios;
+            treeOnGrassSpawner.SetContext(TreeOnGrassSpawner.SpawnContext.Antennas);
+        }
         else
+        {
             gridGen.currentContext = GridGen.ContextType.SoloTierra;
+            treeOnGrassSpawner.SetContext(TreeOnGrassSpawner.SpawnContext.Trees);
+        }
+           
         RegenTerrain();
     }
 
