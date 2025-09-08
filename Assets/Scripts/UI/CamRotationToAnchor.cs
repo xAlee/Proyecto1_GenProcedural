@@ -50,9 +50,6 @@ public class CamRotationToAnchor : MonoBehaviour
         float angle = rotationSpeed * Time.deltaTime;
         transform.RotateAround(anchor.transform.position, rotationAxis.normalized, angle);
 
-        // 4) Forzar la distancia deseada (mantiene el ángulo de rotación)
-        Vector3 dir = transform.position - anchor.transform.position;
-
         if (lookAtAnchor)
         {
             // Mantener la cámara mirando al anchor

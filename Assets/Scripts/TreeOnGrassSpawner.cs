@@ -33,10 +33,13 @@ public class TreeOnGrassSpawner : MonoBehaviour
     void Start()
     {
         // por si el mapa ya estaba listo
-        if (grid && grid.transform.childCount > 0) HandleMapReady();
+        if (grid && grid.transform.childCount > 0)
+        {
+            HandleMapReady();
+        }
     }
 
-    private void HandleMapReady()
+    private async void HandleMapReady()
     {
         plantedBases.Clear();
 

@@ -52,7 +52,7 @@ public class GridGen : MonoBehaviour
         }
     }
 
-    public void GenerarMapa()
+    public async void GenerarMapa()
     {
         // Limpia cubos existentes
         foreach (var cube in spawnedCubes)
@@ -183,5 +183,14 @@ public class GridGen : MonoBehaviour
             v
         );
         return (res + 1f) / 2f;
+    }
+
+    public void CambiarContexto(ContextType nuevoContexto)
+    {
+        if (currentContext != nuevoContexto)
+        {
+            currentContext = nuevoContexto;
+            GenerarMapa();
+        }
     }
 }
