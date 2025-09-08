@@ -15,7 +15,7 @@ public class TreeOnGrassSpawner : MonoBehaviour
 
     [Header("Spawn")]
     [SerializeField, Range(0f, 1f)] private float spawnChance = 0.30f;
-    [SerializeField] private int maxObjects = 10;
+    [SerializeField] private int maxCount = 10;
     [SerializeField] private float minSpacing = 2.0f;
     [SerializeField] private float extraYOffset = 0.0f;
     [SerializeField] private bool randomYaw = true;
@@ -94,6 +94,7 @@ public class TreeOnGrassSpawner : MonoBehaviour
     // ========= N�cleo =========
     private void DoSpawn()
     {
+        ClearSpawned(immediate: true);
         // limpiar previos
         foreach (var go in spawnedObjects) if (go) Destroy(go);
         spawnedObjects.Clear();
@@ -128,7 +129,7 @@ public class TreeOnGrassSpawner : MonoBehaviour
         int spawned = 0;
         foreach (var b in bases)
         {
-            if (spawned >= maxObjects) break;
+            if (spawned >= maxCount) break;
             if (rng.NextDouble() > spawnChance) continue;
 
             Vector3 baseWorld = b.position;
@@ -246,5 +247,29 @@ public class TreeOnGrassSpawner : MonoBehaviour
 
         // 3) Fallback al propio transform
         return t.position + Vector3.up * (t.lossyScale.y * 0.5f);
+    }
+
+    public void SetMaxCount(int value)
+    {
+        maxCount = Mathf.Max(0, value);
+        DoSpawn(); // regenera con el nuevo máximo
+    }
+
+    public void SetMaxCountFromString(string text)
+    {
+        if (int.TryParse(text, out int v)) SetMaxCount(v);
+        else Debug.LogWarning("[Spawner] Valor inválido para maxCount.");
+    }
+
+    private void ClearSpawned(bool immediate = false)
+    {
+        foreach (var go in spawnedObjects)
+        {
+            if (!go) continue;
+            if (immediate) DestroyImmediate(go);
+            else Destroy(go);
+        }
+        spawnedObjects.Clear();
+        plantedBases.Clear();
     }
 }
