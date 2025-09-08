@@ -10,17 +10,15 @@ public class NoiseGen : MonoBehaviour
     [SerializeField] public int noise_height;
     [SerializeField] public float chanceRange;
 
-    [SerializeField] GameObject boxel;
-    GameObject boxelinstance;
     private int type;
-
-    public List<GameObject> currentBoxels = new List<GameObject>();
 
     [SerializeField] public bool reset = false;
     [SerializeField] public bool cel = false;
 
     BoxelDataList dataList = new BoxelDataList();
     [SerializeField] private CellularAutomata cellularAutomata;
+
+    [SerializeField] private BoxelInstancer instancer;
 
     private string path => Application.dataPath + "/boxelgrid.bin";
 
@@ -39,8 +37,6 @@ public class NoiseGen : MonoBehaviour
         {
             for (int j = 0; j < noise_height; j++)
             {
-                boxelinstance = Instantiate(boxel, new Vector3(i, 0, j), Quaternion.identity);
-
                 float chance = Random.Range(0.0f, 1.0f);
 
                 if (chance > chanceRange)
@@ -60,13 +56,18 @@ public class NoiseGen : MonoBehaviour
                 };
 
                 dataList.items.Add(data);
-                currentBoxels.Add(boxelinstance);
             }
         }
 
-        // Convert to compact bit-packed binary file
+        // Guardar binario compacto
         var types = dataList.items.OrderBy(d => d.x).ThenBy(d => d.y).Select(d => d.type).ToList();
         BoxelBinary.WriteBitPacked(path, noise_width, noise_height, types);
+
+        // Actualizar instancer para dibujar sin GameObjects
+        if (instancer != null)
+        {
+            instancer.UpdateBatchesFromDataList(dataList.items, noise_width, noise_height, parallel: true);
+        }
     }
 
     private void Delete_binary_file()
@@ -81,9 +82,10 @@ public class NoiseGen : MonoBehaviour
 
     private void Delete_Boxels()
     {
-        foreach (GameObject boxel in currentBoxels)
+        // ya no destruimos GameObjects; limpiar instancer y la lista
+        if (instancer != null)
         {
-            Destroy(boxel);
+            instancer.Clear();
         }
     }
 
@@ -101,7 +103,13 @@ public class NoiseGen : MonoBehaviour
         if (cel)
         {
             cel = false;
-            cellularAutomata.ExecuteAutomata();
+
+            // NO eliminar la previsualización aquí — queremos verla antes de ejecutar el autómata.
+            // Iniciar autómata (ExecuteAutomata delega a la versión async)
+            if (cellularAutomata != null)
+            {
+                cellularAutomata.ExecuteAutomata();
+            }
         }
     }
 }

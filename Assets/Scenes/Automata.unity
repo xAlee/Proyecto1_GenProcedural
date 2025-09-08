@@ -228,6 +228,7 @@ GameObject:
   - component: {fileID: 325402007}
   - component: {fileID: 325402006}
   - component: {fileID: 325402005}
+  - component: {fileID: 325402008}
   m_Layer: 0
   m_Name: Automata
   m_TagString: Untagged
@@ -251,6 +252,7 @@ MonoBehaviour:
   whiteCol: {fileID: 0}
   blackCol: {fileID: 0}
   dataObject: {fileID: 325402006}
+  instancer: {fileID: 325402008}
   iterations: 1
 --- !u!114 &325402006
 MonoBehaviour:
@@ -267,11 +269,10 @@ MonoBehaviour:
   noise_width: 100
   noise_height: 100
   chanceRange: 0.5
-  boxel: {fileID: 760338819718322112, guid: 52cb1490c15b9304497827a872858d32, type: 3}
-  currentBoxels: []
   reset: 0
   cel: 0
   cellularAutomata: {fileID: 325402005}
+  instancer: {fileID: 325402008}
 --- !u!4 &325402007
 Transform:
   m_ObjectHideFlags: 0
@@ -287,6 +288,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &325402008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 325402004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7e2f1f4588ca6843af28180eb4f00ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  instanceMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  instanceMaterial: {fileID: 2100000, guid: 58ac32f8468ae204abfd52627b161b48, type: 2}
+  batchSize: 1023
+  yOffset: 0
+  extrude: 1
+  maxExtrudeHeight: 6
+  mirrorCeiling: 1
+  caveHeight: 12
+  baseThickness: 2
+  ceilingThickness: 2
+  outerShell: 1
 --- !u!1 &1227267773
 GameObject:
   m_ObjectHideFlags: 0

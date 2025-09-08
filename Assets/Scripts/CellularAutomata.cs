@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using System.Linq;
+using System.Threading.Tasks;
 
 public class CellularAutomata : MonoBehaviour
 {
@@ -14,18 +15,82 @@ public class CellularAutomata : MonoBehaviour
     private List<GameObject> currentBoxels;
     [SerializeField] private NoiseGen dataObject;
 
+    // Referencia al instancer (asignar en el inspector)
+    [SerializeField] private BoxelInstancer instancer;
+
     public int iterations = 1;
 
     private string path => Application.dataPath + "/boxelgrid.bin";
 
+    // Mantengo la firma para compatibilidad: ahora delega a la versión asíncrona
     public void ExecuteAutomata()
     {
-        currentBoxels = dataObject.currentBoxels;
+        // Llamada no bloqueante
+        ExecuteAutomataAsync();
+    }
 
+    // Versión asíncrona: cargas, calculas en background y actualizas en el hilo principal
+    public async void ExecuteAutomataAsync()
+    {
+        // LoadGrid poblara dataList (síncrono, rápido si usas binario)
         LoadGrid();
-        RunAutomata();
-        RebuildScene();
-        SaveGrid();
+
+        if (instancer != null)
+        {
+            instancer.Clear();
+        }
+
+        if (dataList == null || dataList.items == null || dataList.items.Count == 0)
+        {
+            Debug.LogWarning("No hay datos para ejecutar el autómata.");
+            return;
+        }
+
+        int width = GetMaxX() + 1;
+        int height = GetMaxY() + 1;
+
+        // Construir grid simple para cálculo (operaciones puramente gestionadas)
+        byte[,] grid = BuildGridFromDataList(width, height);
+
+        // Ejecutar autómata en un hilo de trabajo
+        byte[,] result = await Task.Run(() => RunAutomataOnGrid(grid, width, height, iterations));
+
+        // Reconstruir dataList desde resultado (en hilo principal)
+        dataList.items = new List<BoxelData>(width * height);
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                dataList.items.Add(new BoxelData { x = x, y = y, type = result[x, y] });
+            }
+        }
+
+        // Actualizar visuales en hilo principal.
+        // IMPORTANTE: no ejecutar APIs de Unity desde Task.Run. Aquí estamos en main thread.
+        if (instancer != null)
+        {
+            // No usar parallel:true aquí — construir matrices usa Matrix4x4/Vector3 (Unity types)
+            instancer.UpdateBatchesFromDataList(dataList.items, width, height, parallel: false);
+        }
+        else
+        {
+            RebuildScene(); // fallback que usa Instantiate/Destroy
+        }
+
+        // Guardado en disco asíncrono para no bloquear el frame
+        await Task.Run(() =>
+        {
+            try
+            {
+                var ordered = dataList.items.OrderBy(d => d.x).ThenBy(d => d.y).Select(d => d.type).ToList();
+                BoxelBinary.WriteBitPacked(path, width, height, ordered);
+                Debug.Log($"Automata guardado: {dataList.items.Count} celdas en {path}");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Error guardando BIN (async): {e.Message}");
+            }
+        });
     }
 
     private void LoadGrid()
@@ -60,86 +125,104 @@ public class CellularAutomata : MonoBehaviour
         Debug.Log($"Cargadas {dataList.items.Count} celdas desde BIN ({width}x{height}).");
     }
 
-    private void RunAutomata()
+    // Construye una matriz de bytes desde dataList (uso en cálculos)
+    private byte[,] BuildGridFromDataList(int width, int height)
     {
-        int width = GetMaxX() + 1;
-        int height = GetMaxY() + 1;
-
-        for (int iter = 0; iter < iterations; iter++)
+        byte[,] grid = new byte[width, height];
+        foreach (var c in dataList.items)
         {
-            List<BoxelData> newData = new List<BoxelData>();
-
-            foreach (BoxelData cell in dataList.items)
-            {
-                int neighbors = CountAliveNeighbors(cell.x, cell.y, width, height);
-
-                BoxelData newCell = new BoxelData
-                {
-                    x = cell.x,
-                    y = cell.y,
-                    type = (neighbors > 4) ? 1 : 0
-                };
-
-                newData.Add(newCell);
-            }
-
-            dataList.items = newData;
+            if (c.x >= 0 && c.x < width && c.y >= 0 && c.y < height)
+                grid[c.x, c.y] = (byte)c.type;
         }
+        return grid;
+    }
+
+    // Algoritmo del autómata sobre matriz (puede ejecutarse en Task.Run)
+    private byte[,] RunAutomataOnGrid(byte[,] grid, int width, int height, int iters)
+    {
+        byte[,] cur = grid;
+        byte[,] next = new byte[width, height];
+
+        for (int iter = 0; iter < iters; iter++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    int neighbors = CountAliveNeighborsFromGrid(cur, x, y, width, height);
+                    next[x, y] = (neighbors > 4) ? (byte)1 : (byte)0;
+                }
+            }
+            // swap referencias (evita copiar)
+            (next, cur) = (cur, next);
+        }
+
+        return cur;
+    }
+
+    // Conteo de vecinos puramente sobre la matriz (sin llamadas a Unity APIs)
+    private int CountAliveNeighborsFromGrid(byte[,] grid, int x, int y, int width, int height)
+    {
+        int alive = 0;
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                if (dx == 0 && dy == 0) continue;
+                int nx = x + dx;
+                int ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+                {
+                    alive++; // fuera de límites = pared
+                }
+                else
+                {
+                    if (grid[nx, ny] == 1) alive++;
+                }
+            }
+        }
+        return alive;
     }
 
     private void RebuildScene()
     {
-        // Limpiar los boxels anteriores
-        foreach (GameObject boxel in currentBoxels)
+        // Destruir los GameObjects anteriores (si existen) para evitar duplicados
+        if (currentBoxels != null)
         {
-            Destroy(boxel);
+            foreach (GameObject boxel in currentBoxels)
+            {
+                if (boxel != null) Destroy(boxel);
+            }
+            currentBoxels.Clear();
         }
-        currentBoxels.Clear();
+        else
+        {
+            currentBoxels = new List<GameObject>();
+        }
 
-        // Construir de nuevo con los nuevos valores
+        // Calcular dimensiones actuales
+        int width = GetMaxX() + 1;
+        int height = GetMaxY() + 1;
+
+        // Si hay un BoxelInstancer asignado, usarlo (no crear GameObjects)
+        if (instancer != null)
+        {
+            // Construir batches en el hilo principal (safe): no use parallel:true aquí si se llama desde el main thread
+            // Si quieres paralelizar, prepara posiciones en background y transforma a Matrix4x4 en main thread.
+            instancer.UpdateBatchesFromDataList(dataList.items, width, height, parallel: false);
+            return;
+        }
+
+        // Fallback: comportamiento original (instanciar GameObjects) si no hay instancer
         foreach (BoxelData data in dataList.items)
         {
             if (data.type != 0)
             {
                 GameObject go = Instantiate(boxelPrefab, new Vector3(data.x, 0, data.y), Quaternion.identity);
-
                 currentBoxels.Add(go);
             }
         }
     }
-
-    private int CountAliveNeighbors(int x, int y, int width, int height)
-    {
-        int alive = 0;
-
-        for (int dx = -1; dx <= 1; dx++)
-        {
-            for (int dy = -1; dy <= 1; dy++)
-            {
-                if (dx == 0 && dy == 0) continue; // no contar la celda misma
-
-                int nx = x + dx;
-                int ny = y + dy;
-
-                // si se sale de los límites, contar como "pared" (type=1)
-                if (nx < 0 || ny < 0 || nx >= width || ny >= height)
-                {
-                    alive++;
-                }
-                else
-                {
-                    BoxelData neighbor = dataList.items.Find(c => c.x == nx && c.y == ny);
-                    if (neighbor != null && neighbor.type == 1)
-                    {
-                        alive++;
-                    }
-                }
-            }
-        }
-
-        return alive;
-    }
-
     private int GetMaxX()
     {
         int max = 0;
@@ -162,11 +245,10 @@ public class CellularAutomata : MonoBehaviour
 
     private void SaveGrid()
     {
-        // Convertir dataList de nuevo a lista de tipos en el mismo orden usado para escribir
+        // Convencional síncrono (ya que SaveGrid async está en ExecuteAutomataAsync)
         int width = GetMaxX() + 1;
         int height = GetMaxY() + 1;
 
-        // Asegurar orden consistente: x primero, luego y (coincide con NoiseGen)
         var ordered = dataList.items.OrderBy(d => d.x).ThenBy(d => d.y).Select(d => d.type).ToList();
 
         try
