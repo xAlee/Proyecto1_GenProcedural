@@ -6,6 +6,16 @@ public class GridGen : MonoBehaviour
     public GameObject grassPrefab;
     public GameObject dirtPrefab;
 
+    [Header("Edificios / Casas")]
+    public GameObject buildingPrefab1;
+    public GameObject buildingPrefab2;
+    public GameObject cityGroundPrefab; // Prefab del suelo de la ciudad
+    public enum ContextType { SoloTierra, ConEdificios }
+    public ContextType currentContext = ContextType.SoloTierra;
+
+    [Header("Regenerar Mapa")]
+    public bool regenerarMapa = false;
+
     [SerializeField] private int sizeX = 40;
     [SerializeField] private int sizeZ = 40;
     [SerializeField] private int noiseHeight = 8;
@@ -18,6 +28,10 @@ public class GridGen : MonoBehaviour
     [SerializeField] private float persistence = 0.5f;
     [SerializeField] private float lacunarity = 2.0f;
 
+    [Header("Ciudades")]
+    [SerializeField] private int alturaMinEdificio = 2;
+    [SerializeField, Range(0f, 1f)] private float probabilidadEdificio = 0.2f;
+
     public int[,] heightMap { get; private set; } // Para que otro script pueda acceder
 
     private List<GameObject> spawnedCubes = new List<GameObject>();
@@ -29,13 +43,39 @@ public class GridGen : MonoBehaviour
 
     public event System.Action OnMapGenerated;
 
-     public void GenerarMapa()
+    void Update()
+    {
+        if (regenerarMapa)
+        {
+            GenerarMapa();
+            regenerarMapa = false;
+        }
+    }
+
+    public void GenerarMapa()
     {
         // Limpia cubos existentes
         foreach (var cube in spawnedCubes)
             if (cube != null) DestroyImmediate(cube);
         spawnedCubes.Clear();
         InitPerm(seed);
+
+        // Ajustamos parámetros de Perlin según contexto
+        float contextNoiseHeight = noiseHeight;
+        float contextNoiseScale = noiseScale;
+        int contextOctaves = octaves;
+        float contextPersistence = persistence;
+        float contextLacunarity = lacunarity;
+
+        if (currentContext == ContextType.ConEdificios)
+        {
+            // Suavizamos el terreno para calles y edificios
+            contextNoiseHeight = Mathf.Max(1, noiseHeight / 3f); // alturas bajas
+            contextNoiseScale = noiseScale * 2f;                // más suave
+            contextOctaves = 3;
+            contextPersistence = 0.4f;
+            contextLacunarity = 2f;
+        }
 
         heightMap = new int[sizeX, sizeZ];
 
@@ -44,28 +84,60 @@ public class GridGen : MonoBehaviour
         {
             for (int z = 0; z < sizeZ; z++)
             {
-                float heightValue = FractalPerlin2D(x * noiseScale, z * noiseScale) * noiseHeight;
+                float heightValue = FractalPerlin2D(x * contextNoiseScale, z * contextNoiseScale, contextOctaves, contextPersistence, contextLacunarity) * contextNoiseHeight;
                 heightMap[x, z] = Mathf.RoundToInt(heightValue);
             }
         }
 
-        // Generamos solo la superficie
+        // Generamos superficie y edificios
         for (int x = 0; x < sizeX; x++)
         {
             for (int z = 0; z < sizeZ; z++)
             {
                 int colHeight = heightMap[x, z];
                 Vector3 pos = new Vector3(x * SeparacionGrid, colHeight, z * SeparacionGrid);
-                GameObject cube = Instantiate(grassPrefab, pos, Quaternion.identity, this.transform);
+
+                // Elegimos el prefab de suelo según contexto
+                GameObject sueloPrefab = currentContext == ContextType.ConEdificios
+                    ? cityGroundPrefab
+                    : grassPrefab;
+
+                GameObject cube = Instantiate(sueloPrefab, pos, Quaternion.identity, this.transform);
                 spawnedCubes.Add(cube);
+
+                // Contexto de edificios
+                if (currentContext == ContextType.ConEdificios && colHeight >= alturaMinEdificio)
+                {
+                    if (Random.value < probabilidadEdificio)
+                    {
+                        GameObject buildingToSpawn = Random.value < 0.5f ? buildingPrefab1 : buildingPrefab2;
+                        GameObject building = Instantiate(buildingToSpawn, pos + Vector3.up * 0.5f, Quaternion.identity, this.transform);
+                        spawnedCubes.Add(building);
+                    }
+                }
             }
         }
 
-        // Disparamos el evento
         OnMapGenerated?.Invoke();
     }
-    
-    // --- Perlin Noise Functions (igual que antes) ---
+
+
+    // Modificamos FractalPerlin2D para recibir parámetros dinámicos
+    private float FractalPerlin2D(float x, float y, int oct, float pers, float lac)
+    {
+        float total = 0f, amplitude = 1f, frequency = 1f, maxValue = 0f;
+        for (int i = 0; i < oct; i++)
+        {
+            total += Perlin2D(x * frequency, y * frequency) * amplitude;
+            maxValue += amplitude;
+            amplitude *= pers;
+            frequency *= lac;
+        }
+        return total / maxValue;
+    }
+
+
+    // --- Perlin Noise Functions ---
     private static int[] p;
     public static void InitPerm(int seed)
     {
@@ -110,17 +182,5 @@ public class GridGen : MonoBehaviour
             v
         );
         return (res + 1f) / 2f;
-    }
-    private float FractalPerlin2D(float x, float y)
-    {
-        float total = 0f, amplitude = 1f, frequency = 1f, maxValue = 0f;
-        for (int i = 0; i < octaves; i++)
-        {
-            total += Perlin2D(x * frequency, y * frequency) * amplitude;
-            maxValue += amplitude;
-            amplitude *= persistence;
-            frequency *= lacunarity;
-        }
-        return total / maxValue;
     }
 }
