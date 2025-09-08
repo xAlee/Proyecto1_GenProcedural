@@ -4,7 +4,6 @@ using TMPro;
 public class RuleInputPanel : MonoBehaviour
 {
     [SerializeField] private TreeOnGrassSpawner spawner;
-    [SerializeField] private TMP_InputField maxInput;
     [SerializeField] private TMP_InputField ruleInput;
 
     public void OnApplyRuleClicked()
@@ -19,6 +18,5 @@ public class RuleInputPanel : MonoBehaviour
         if (rule != null) rule = rule.Trim();
 
         spawner.ApplyCustomRuleToForest(rule);
-        spawner.SetMaxCountFromString(maxInput.text);
     }
 }
