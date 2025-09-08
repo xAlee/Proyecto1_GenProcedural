@@ -100,6 +100,84 @@ public class UIManager : MonoBehaviour
         cam.width = float.Parse(width.text);
     }
 
+    public void Prev1()
+    {
+        width.text = 50.ToString();
+        height.text = 50.ToString();
+
+        pHeight.text = 8.ToString();
+        pSeed.text = 12345.ToString();
+        pNoise.text = 0.1f.ToString(CultureInfo.InvariantCulture);
+        pOctaves.text = 4.ToString();
+        pPersistence.text = 0.5f.ToString(CultureInfo.InvariantCulture);
+        pLacuranity.text = 2.0f.ToString(CultureInfo.InvariantCulture);
+
+        tRules.text = "F->F[+F]F[-F]F";
+
+        cChance.text = 0.5f.ToString(CultureInfo.InvariantCulture);
+        cExtrude.text = 6.ToString();
+        cCeiling.text = 12.ToString();
+
+        ResetNoise();
+        StartAutomata();
+        RegenTerrain();
+    }
+
+    public void Prev2()
+    {
+        width.text = 100.ToString();
+        height.text = 100.ToString();
+
+        pHeight.text = 4.ToString();
+        pSeed.text = 235456.ToString();
+        pNoise.text = 0.2f.ToString(CultureInfo.InvariantCulture);
+        pOctaves.text = 3.ToString();
+        pPersistence.text = 0.4f.ToString(CultureInfo.InvariantCulture);
+        pLacuranity.text = 2.0f.ToString(CultureInfo.InvariantCulture);
+
+        tRules.text = "F->F[+F]F[-F]F";
+
+        cChance.text = 0.65f.ToString(CultureInfo.InvariantCulture);
+        cExtrude.text = 4.ToString();
+        cCeiling.text = 12.ToString();
+
+        ResetNoise();
+        StartAutomata();
+        RegenTerrain();
+    }
+
+    public void Prev3()
+    {
+        width.text = 150.ToString();
+        height.text = 150.ToString();
+
+        pHeight.text = 12.ToString();
+        pSeed.text = 45634.ToString();
+        pNoise.text = 0.2f.ToString(CultureInfo.InvariantCulture);
+        pOctaves.text = 6.ToString();
+        pPersistence.text = 0.4f.ToString(CultureInfo.InvariantCulture);
+        pLacuranity.text = 2.0f.ToString(CultureInfo.InvariantCulture);
+
+        tRules.text = "F->F[+F]F[-F]F";
+
+        cChance.text = 0.4f.ToString(CultureInfo.InvariantCulture);
+        cExtrude.text = 2.ToString();
+        cCeiling.text = 12.ToString();
+
+        ResetNoise();
+        StartAutomata();
+        RegenTerrain();
+    }
+
+    public void SwapTerrainType()
+    {
+        if (gridGen.currentContext == GridGen.ContextType.SoloTierra)
+            gridGen.currentContext = GridGen.ContextType.ConEdificios;
+        else
+            gridGen.currentContext = GridGen.ContextType.SoloTierra;
+        RegenTerrain();
+    }
+
     public void ResetNoise()
     {
         init();
