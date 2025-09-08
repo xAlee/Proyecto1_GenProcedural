@@ -18,11 +18,11 @@ Cada vez que se genera el mapa, el terreno se construye mediante bloques que se 
    git clone https://github.com/xAlee/Proyecto1_GenProcedural.git
 2.Abre Unity Hub e importa el proyecto.
 
-3.Abre la escena principal (.unity) ubicada en la carpeta Assets/Scenes/.
+3.Abre la escena principal ContextController ubicada en la carpeta Assets/Scenes/.
 
 4.Ejecuta el proyecto con el botón ▶️ Play en el editor de Unity.
 
-Tambien puedes ejecutar la version web o descargar el ejecutable desde https://dragyer.itch.io/proyecto-1-genprocedural
+Tambien puedes ejecutar la version web o descargar el ejecutable desde https://dragyer.itch.io/environmentgenerator
 
 
 
