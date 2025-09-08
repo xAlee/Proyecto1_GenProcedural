@@ -4,8 +4,8 @@ using System.Collections.Generic;
 public class TreeGen : MonoBehaviour
 {
     [Header("Prefabs")]
-    [SerializeField] private GameObject cubePrefab;   // Rama/tronco (Cylinder recomendado)
-    [SerializeField] private GameObject leafPrefab;   // Hoja (esfera/quad)
+    [SerializeField] private GameObject cubePrefab;
+    [SerializeField] private GameObject leafPrefab;
 
     [Header("L-System")]
     [SerializeField] private int iterations = 3;
@@ -17,7 +17,7 @@ public class TreeGen : MonoBehaviour
     [SerializeField] private Vector2 branchRadius = new Vector2(0.12f, 0.2f);
     [SerializeField] private float leafSize = 0.35f;
 
-    [Header("Taper (afinado por profundidad)")]
+    [Header("Taper")]
     [SerializeField, Range(0.7f, 1f)] private float radiusDecay = 0.9f;
     [SerializeField, Range(0.8f, 1f)] private float lengthDecay = 0.95f;
 
@@ -27,6 +27,9 @@ public class TreeGen : MonoBehaviour
 
     [SerializeField] private float primitiveBaseHeight = 2f;
 
+    [Header("Regla inicial")]
+    [SerializeField, TextArea(1, 3)] private string initialRule = "F[+F]F[-F]F";
+
     private int roundingDecimals = 3;
     private string axiom = "F";
     private string currentString;
@@ -34,14 +37,13 @@ public class TreeGen : MonoBehaviour
     private Dictionary<char, string> rules = new Dictionary<char, string>();
     private HashSet<string> occupiedPositions = new HashSet<string>();
 
-    [Header("Regla inicial (puedes editarla en Inspector)")]
-    [SerializeField, TextArea(1, 3)] private string initialRule = "F[+F]F[-F]F";
+    // >>> NUEVO: cache del root generado
+    private Transform treeRoot;
 
     void Start()
     {
         if (useSeed) Random.InitState(seed);
 
-        // Aplica la regla inicial al comenzar
         rules.Clear();
         rules.Add('F', initialRule.Trim());
 
@@ -49,10 +51,12 @@ public class TreeGen : MonoBehaviour
         for (int i = 0; i < iterations; i++)
             currentString = ApplyRules(currentString);
 
+        // Asegura que no quedan restos
+        DestroyCurrentTreeRoot();
         GenerateTree(currentString);
     }
 
-    // ---- API pública: cambiar solo la semilla (manteniendo reglas) ----
+    // ---- API: semillas (mantener reglas) ----
     public void RegenerateKeepRules()
     {
         if (useSeed) Random.InitState(seed);
@@ -71,7 +75,7 @@ public class TreeGen : MonoBehaviour
         RegenerateKeepRules();
     }
 
-    // ---- API pública: aplicar regla escrita desde UI ----
+    // ---- API: regla escrita desde UI ----
     public void SetCustomRuleAndRegenerate(string fRule)
     {
         if (string.IsNullOrWhiteSpace(fRule))
@@ -89,9 +93,7 @@ public class TreeGen : MonoBehaviour
         for (int i = 0; i < iterations; i++)
             currentString = ApplyRules(currentString);
 
-        var previousTree = transform.Find("LSystemTree");
-        if (previousTree != null) Destroy(previousTree.gameObject);
-
+        DestroyCurrentTreeRoot();
         GenerateTree(currentString);
     }
 
@@ -99,13 +101,11 @@ public class TreeGen : MonoBehaviour
 
     private void RegenerateWithCurrentRules()
     {
-        var previousTree = transform.Find("LSystemTree");
-        if (previousTree != null) Destroy(previousTree.gameObject);
-
         currentString = axiom;
         for (int i = 0; i < iterations; i++)
             currentString = ApplyRules(currentString);
 
+        DestroyCurrentTreeRoot();
         GenerateTree(currentString);
     }
 
@@ -113,10 +113,7 @@ public class TreeGen : MonoBehaviour
     {
         string result = "";
         foreach (char c in input)
-        {
-            if (rules.ContainsKey(c)) result += rules[c];
-            else result += c.ToString();
-        }
+            result += rules.ContainsKey(c) ? rules[c] : c.ToString();
         return result;
     }
 
@@ -128,12 +125,13 @@ public class TreeGen : MonoBehaviour
         Vector3 posLocal = Vector3.zero;
         Quaternion rotLocal = Quaternion.identity;
 
-        Transform parent = new GameObject("LSystemTree").transform;
-        parent.SetParent(this.transform, false);
+        // Crear nuevo root y cachearlo
+        treeRoot = new GameObject("LSystemTree").transform;
+        treeRoot.SetParent(this.transform, false);
         Transform branchesParent = new GameObject("Branches").transform;
-        branchesParent.SetParent(parent, false);
+        branchesParent.SetParent(treeRoot, false);
         Transform leavesParent = new GameObject("Leaves").transform;
-        leavesParent.SetParent(parent, false);
+        leavesParent.SetParent(treeRoot, false);
 
         foreach (char c in instructions)
         {
@@ -148,7 +146,6 @@ public class TreeGen : MonoBehaviour
                         float r = rBase * Mathf.Pow(radiusDecay, depth);
 
                         Vector3 centerLocal = posLocal + rotLocal * Vector3.up * (segLen * 0.5f);
-
                         Vector3 centerWorld = transform.TransformPoint(centerLocal);
                         Quaternion rotWorld = transform.rotation * rotLocal;
 
@@ -230,6 +227,22 @@ public class TreeGen : MonoBehaviour
                 leaf.transform.localScale = Vector3.one * leafSize;
                 occupiedPositions.Add(finalLeafKey);
             }
+        }
+    }
+
+    // >>> NUEVO: destruye el root actual si existe
+    private void DestroyCurrentTreeRoot()
+    {
+        if (treeRoot != null)
+        {
+            DestroyImmediate(treeRoot.gameObject);
+            treeRoot = null;
+        }
+        else
+        {
+            // por si hubiera restos con el nombre anterior
+            var leftover = transform.Find("LSystemTree");
+            if (leftover) DestroyImmediate(leftover.gameObject);
         }
     }
 

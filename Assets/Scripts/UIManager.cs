@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using System.Globalization;
+using static TreeOnGrassSpawner;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private NoiseGen noiseGen;
     [SerializeField] private GridGen gridGen;
+    [SerializeField] private TreeOnGrassSpawner TreeSpawner;
 
     [SerializeField] private TMP_InputField width;
     [SerializeField] private TMP_InputField height;
@@ -172,9 +174,17 @@ public class UIManager : MonoBehaviour
     public void SwapTerrainType()
     {
         if (gridGen.currentContext == GridGen.ContextType.SoloTierra)
+        {
             gridGen.currentContext = GridGen.ContextType.ConEdificios;
+            TreeSpawner.SetContext(SpawnContext.Antennas);
+        }
+
         else
+        {
             gridGen.currentContext = GridGen.ContextType.SoloTierra;
+            TreeSpawner.SetContext(SpawnContext.Trees);
+        }
+
         RegenTerrain();
     }
 

@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -4756,10 +4755,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da9d760930f23544b9f8806a166eb81e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  context: 1
   grid: {fileID: 1093218460}
   treePrefab: {fileID: 132179360874914027, guid: f2d96203defe16d4d93a092d5203ea51, type: 3}
+  antennaPrefab: {fileID: 7196124069612184066, guid: 8205a145d974cf64d82476914343affe, type: 3}
   spawnChance: 0.3
-  maxTrees: 10
+  maxObjects: 10
   minSpacing: 2
   extraYOffset: 0
   randomYaw: 1
@@ -4768,6 +4769,11 @@ MonoBehaviour:
   obstructionMask:
     serializedVersion: 2
     m_Bits: 0
+  useSeed: 1
+  masterSeed: 123456789
+  houseTag: House
+  useCustomRuleOverride: 0
+  customRuleF: F[+F]F[-F]F
 --- !u!4 &1089119342
 Transform:
   m_ObjectHideFlags: 0
@@ -5079,7 +5085,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1116868427}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1757517855}
+        m_TargetAssemblyTypeName: RuleInputPanel, Assembly-CSharp
+        m_MethodName: OnApplyRuleClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1116868427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8006,6 +8024,7 @@ GameObject:
   - component: {fileID: 1757517851}
   - component: {fileID: 1757517850}
   - component: {fileID: 1757517854}
+  - component: {fileID: 1757517855}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -8124,6 +8143,7 @@ MonoBehaviour:
   panelCellular: {fileID: 881763574}
   noiseGen: {fileID: 1808741177}
   gridGen: {fileID: 1093218460}
+  TreeSpawner: {fileID: 1089119341}
   width: {fileID: 791215777}
   height: {fileID: 2043957670}
   pHeight: {fileID: 1402759655}
@@ -8137,6 +8157,20 @@ MonoBehaviour:
   cExtrude: {fileID: 1171777312}
   cCeiling: {fileID: 290492221}
   cam: {fileID: 671400713}
+--- !u!114 &1757517855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757517849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 370f3d09bb8f29647a18bf26f73d2d96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawner: {fileID: 1089119341}
+  ruleInput: {fileID: 693374717}
 --- !u!1 &1803427856
 GameObject:
   m_ObjectHideFlags: 0
