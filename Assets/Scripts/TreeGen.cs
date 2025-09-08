@@ -14,34 +14,36 @@ public class TreeGen : MonoBehaviour
     [SerializeField] private float length = 1f;
 
     [Header("Aspecto ramas")]
-    [SerializeField] private Vector2 branchRadius = new Vector2(0.12f, 0.2f); // radio X/Z base (min,max)
+    [SerializeField] private Vector2 branchRadius = new Vector2(0.12f, 0.2f);
     [SerializeField] private float leafSize = 0.35f;
 
     [Header("Taper (afinado por profundidad)")]
-    [SerializeField, Range(0.7f, 1f)] private float radiusDecay = 0.9f;  // 0.85–0.95 recomendado
-    [SerializeField, Range(0.8f, 1f)] private float lengthDecay = 0.95f; // 1 si no quieres acortar
+    [SerializeField, Range(0.7f, 1f)] private float radiusDecay = 0.9f;
+    [SerializeField, Range(0.8f, 1f)] private float lengthDecay = 0.95f;
 
     [Header("Aleatoriedad")]
     [SerializeField] public bool useSeed = true;
     [SerializeField] public int seed = 12345;
 
-    // Altura base del primitive: 2 para Cylinder (Unity), 1 para Cube
     [SerializeField] private float primitiveBaseHeight = 2f;
 
-    private int roundingDecimals = 3; // precisión para detectar posiciones iguales
+    private int roundingDecimals = 3;
     private string axiom = "F";
     private string currentString;
 
     private Dictionary<char, string> rules = new Dictionary<char, string>();
     private HashSet<string> occupiedPositions = new HashSet<string>();
 
+    [Header("Regla inicial (puedes editarla en Inspector)")]
+    [SerializeField, TextArea(1, 3)] private string initialRule = "F[+F]F[-F]F";
+
     void Start()
     {
         if (useSeed) Random.InitState(seed);
 
-        // Regla base más "arbórea"
+        // Aplica la regla inicial al comenzar
         rules.Clear();
-        rules.Add('F', "F[+F]F[-F]F");
+        rules.Add('F', initialRule.Trim());
 
         currentString = axiom;
         for (int i = 0; i < iterations; i++)
@@ -50,17 +52,64 @@ public class TreeGen : MonoBehaviour
         GenerateTree(currentString);
     }
 
-    private void Update()
+    // ---- API pública: cambiar solo la semilla (manteniendo reglas) ----
+    public void RegenerateKeepRules()
     {
-
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            SetSeedAndRegenerate(Random.Range(int.MinValue, int.MaxValue));
-        }
+        if (useSeed) Random.InitState(seed);
+        RegenerateWithCurrentRules();
     }
 
+    public void SetSeedAndRegenerate(int newSeed)
+    {
+        seed = newSeed;
+        RegenerateKeepRules();
+    }
 
-    string ApplyRules(string input)
+    public void SetSeedOnly(int newSeed)
+    {
+        seed = newSeed;
+        RegenerateKeepRules();
+    }
+
+    // ---- API pública: aplicar regla escrita desde UI ----
+    public void SetCustomRuleAndRegenerate(string fRule)
+    {
+        if (string.IsNullOrWhiteSpace(fRule))
+        {
+            Debug.LogWarning("[TreeGen] Regla vacía. No se aplicó.");
+            return;
+        }
+
+        if (useSeed) Random.InitState(seed);
+
+        rules.Clear();
+        rules.Add('F', fRule.Trim());
+
+        currentString = axiom;
+        for (int i = 0; i < iterations; i++)
+            currentString = ApplyRules(currentString);
+
+        var previousTree = transform.Find("LSystemTree");
+        if (previousTree != null) Destroy(previousTree.gameObject);
+
+        GenerateTree(currentString);
+    }
+
+    // ================= Internals =================
+
+    private void RegenerateWithCurrentRules()
+    {
+        var previousTree = transform.Find("LSystemTree");
+        if (previousTree != null) Destroy(previousTree.gameObject);
+
+        currentString = axiom;
+        for (int i = 0; i < iterations; i++)
+            currentString = ApplyRules(currentString);
+
+        GenerateTree(currentString);
+    }
+
+    private string ApplyRules(string input)
     {
         string result = "";
         foreach (char c in input)
@@ -71,7 +120,7 @@ public class TreeGen : MonoBehaviour
         return result;
     }
 
-    void GenerateTree(string instructions)
+    private void GenerateTree(string instructions)
     {
         occupiedPositions.Clear();
         Stack<TransformInfo> transformStack = new Stack<TransformInfo>();
@@ -98,9 +147,7 @@ public class TreeGen : MonoBehaviour
                         float rBase = Random.Range(branchRadius.x, branchRadius.y);
                         float r = rBase * Mathf.Pow(radiusDecay, depth);
 
-
                         Vector3 centerLocal = posLocal + rotLocal * Vector3.up * (segLen * 0.5f);
-
 
                         Vector3 centerWorld = transform.TransformPoint(centerLocal);
                         Quaternion rotWorld = transform.rotation * rotLocal;
@@ -109,16 +156,13 @@ public class TreeGen : MonoBehaviour
                         if (!occupiedPositions.Contains(key))
                         {
                             GameObject branch = Instantiate(cubePrefab, centerWorld, rotWorld, branchesParent);
-
                             branch.transform.localScale = new Vector3(r, segLen / primitiveBaseHeight, r);
                             occupiedPositions.Add(key);
                         }
 
-
                         posLocal += rotLocal * Vector3.up * segLen;
                         break;
                     }
-
 
                 case '+':
                     rotLocal *= Quaternion.Euler(Random.Range(angleMin, angleMax), 0, Random.Range(angleMin, angleMax) * 0.5f);
@@ -141,13 +185,11 @@ public class TreeGen : MonoBehaviour
 
                 case '[':
                     transformStack.Push(new TransformInfo { position = posLocal, rotation = rotLocal });
-
                     rotLocal *= Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
                     break;
 
                 case ']':
                     {
-
                         if (leafPrefab != null)
                         {
                             Vector3 leafWorld = transform.TransformPoint(posLocal);
@@ -171,7 +213,7 @@ public class TreeGen : MonoBehaviour
                     }
 
                 default:
-                    Debug.LogWarning($"Carácter no reconocido en instrucciones: {c}");
+                    Debug.LogWarning($"[TreeGen] Carácter no reconocido en instrucciones: {c}");
                     break;
             }
         }
@@ -191,37 +233,14 @@ public class TreeGen : MonoBehaviour
         }
     }
 
-    string PosKey(Vector3 v)
+    private string PosKey(Vector3 v)
     {
         return $"{v.x.ToString($"F{roundingDecimals}")}|{v.y.ToString($"F{roundingDecimals}")}|{v.z.ToString($"F{roundingDecimals}")}";
     }
 
-    struct TransformInfo
+    private struct TransformInfo
     {
         public Vector3 position;
         public Quaternion rotation;
     }
-
-    public void RegenerateKeepRules()
-    {
-        if (useSeed) Random.InitState(seed);
-
-        // borra árbol previo
-        var previousTree = transform.Find("LSystemTree");
-        if (previousTree != null) Destroy(previousTree.gameObject);
-
-        // re-expande con LAS MISMAS reglas actuales
-        currentString = axiom;
-        for (int i = 0; i < iterations; i++)
-            currentString = ApplyRules(currentString);
-
-        GenerateTree(currentString);
-    }
-
-    public void SetSeedAndRegenerate(int newSeed)
-    {
-        seed = newSeed;
-        RegenerateKeepRules(); // MISMAS reglas, solo cambia la semilla
-    }
-
 }

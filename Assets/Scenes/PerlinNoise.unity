@@ -262,6 +262,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   grassPrefab: {fileID: 4023898600549144815, guid: 962f6a1a748e7eb4faefa251dbc957bb, type: 3}
   dirtPrefab: {fileID: 8156827366197007395, guid: 1e9213cabfe679c4fa05fb2613d249dc, type: 3}
+  buildingPrefab1: {fileID: 0}
+  buildingPrefab2: {fileID: 0}
+  cityGroundPrefab: {fileID: 0}
+  currentContext: 0
+  regenerarMapa: 0
   sizeX: 40
   sizeZ: 40
   noiseHeight: 8
@@ -271,6 +276,9 @@ MonoBehaviour:
   octaves: 4
   persistence: 0.5
   lacunarity: 2
+  alturaMinEdificio: 2
+  probabilidadEdificio: 0.2
+  spawnedCubes: []
 --- !u!4 &2090242670
 Transform:
   m_ObjectHideFlags: 0
@@ -426,7 +434,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   grid: {fileID: 2090242669}
   treePrefab: {fileID: 132179360874914027, guid: f2d96203defe16d4d93a092d5203ea51, type: 3}
-  spawnChance: 0.3
+  spawnChance: 0.438
   maxTrees: 10
   minSpacing: 2
   extraYOffset: 0
@@ -436,6 +444,9 @@ MonoBehaviour:
   obstructionMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  useSeed: 1
+  masterSeed: 123456789
+  currentRuleSet: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
