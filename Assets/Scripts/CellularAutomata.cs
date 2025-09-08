@@ -14,6 +14,9 @@ public class CellularAutomata : MonoBehaviour
     // Referencia al instancer (asignar en el inspector)
     [SerializeField] public BoxelInstancer instancer;
 
+    // Nueva: origen Y para la generación / dibujo del autómata
+    [SerializeField] public float yOrigin = 0f;
+
     public int iterations = 1;
 
     private string path => Application.dataPath + "/boxelgrid.bin";
@@ -65,6 +68,9 @@ public class CellularAutomata : MonoBehaviour
         // IMPORTANTE: no ejecutar APIs de Unity desde Task.Run. Aquí estamos en main thread.
         if (instancer != null)
         {
+            // Aplicar origen Y antes de construir batches
+            instancer.yOffset = yOrigin;
+
             // No usar parallel:true aquí — construir matrices usa Matrix4x4/Vector3 (Unity types)
             instancer.UpdateBatchesFromDataList(dataList.items, width, height, parallel: false);
         }
@@ -203,6 +209,9 @@ public class CellularAutomata : MonoBehaviour
         // Si hay un BoxelInstancer asignado, usarlo (no crear GameObjects)
         if (instancer != null)
         {
+            // Aplicar origen Y antes de construir batches
+            instancer.yOffset = yOrigin;
+
             // Construir batches en el hilo principal (safe): no use parallel:true aquí si se llama desde el main thread
             // Si quieres paralelizar, prepara posiciones en background y transforma a Matrix4x4 en main thread.
             instancer.UpdateBatchesFromDataList(dataList.items, width, height, parallel: false);

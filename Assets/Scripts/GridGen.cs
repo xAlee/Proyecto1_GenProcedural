@@ -16,17 +16,17 @@ public class GridGen : MonoBehaviour
     [Header("Regenerar Mapa")]
     public bool regenerarMapa = false;
 
-    [SerializeField] private int sizeX = 40;
-    [SerializeField] private int sizeZ = 40;
-    [SerializeField] private int noiseHeight = 8;
+    [SerializeField] public int sizeX = 40;
+    [SerializeField] public int sizeZ = 40;
+    [SerializeField] public int noiseHeight = 8;
     [SerializeField] private float SeparacionGrid = 1.0f;
-    [SerializeField] private int seed = 12345;
+    [SerializeField] public int seed = 12345;
 
     [Header("Perlin Noise")]
-    [SerializeField] private float noiseScale = 0.1f;
-    [SerializeField] private int octaves = 4;
-    [SerializeField] private float persistence = 0.5f;
-    [SerializeField] private float lacunarity = 2.0f;
+    [SerializeField] public float noiseScale = 0.1f;
+    [SerializeField] public int octaves = 4;
+    [SerializeField] public float persistence = 0.5f;
+    [SerializeField] public float lacunarity = 2.0f;
 
     [Header("Ciudades")]
     [SerializeField] private int alturaMinEdificio = 2;
@@ -34,7 +34,7 @@ public class GridGen : MonoBehaviour
 
     public int[,] heightMap { get; private set; } // Para que otro script pueda acceder
 
-    private List<GameObject> spawnedCubes = new List<GameObject>();
+    [SerializeField] private List<GameObject> spawnedCubes = new List<GameObject>();
 
     void Start()
     {
@@ -58,6 +58,7 @@ public class GridGen : MonoBehaviour
         foreach (var cube in spawnedCubes)
             if (cube != null) DestroyImmediate(cube);
         spawnedCubes.Clear();
+
         InitPerm(seed);
 
         // Ajustamos parámetros de Perlin según contexto

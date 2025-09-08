@@ -11,12 +11,12 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject panelCellular;
 
     [SerializeField] private NoiseGen noiseGen;
+    [SerializeField] private GridGen gridGen;
 
     [SerializeField] private TMP_InputField width;
     [SerializeField] private TMP_InputField height;
 
     [SerializeField] private TMP_InputField pHeight;
-    [SerializeField] private TMP_InputField pSeparation;
     [SerializeField] private TMP_InputField pSeed;
     [SerializeField] private TMP_InputField pNoise;
     [SerializeField] private TMP_InputField pOctaves;
@@ -59,6 +59,9 @@ public class UIManager : MonoBehaviour
         panelTree.SetActive(false);
         panelCellular.SetActive(false);
         init();
+
+        StartAutomata();
+        RegenTerrain();
     }
 
     private void init()
@@ -66,15 +69,31 @@ public class UIManager : MonoBehaviour
         if (width.text == "") width.text = "50";
         else
         {
-            if (int.Parse(width.text) > 0) noiseGen.noise_width = int.Parse(width.text);
-            else noiseGen.noise_width = 50;
+            if (int.Parse(width.text) > 0)
+            {
+                noiseGen.noise_width = int.Parse(width.text);
+                gridGen.sizeX = int.Parse(width.text);
+            }
+            else
+            {
+                noiseGen.noise_width = 50;
+                gridGen.sizeX = 50;
+            }
         }
 
         if (height.text == "") height.text = "50";
         else
         {
-            if (int.Parse(height.text) > 0) noiseGen.noise_height = int.Parse(height.text);
-            else noiseGen.noise_height = 50;
+            if (int.Parse(height.text) > 0)
+            {
+                noiseGen.noise_height = int.Parse(height.text);
+                gridGen.sizeZ = int.Parse(height.text);
+            }
+            else
+            {
+                noiseGen.noise_height = 50;
+                gridGen.sizeZ = 50;
+            }
         }
 
         cam.height = float.Parse(height.text);
@@ -123,5 +142,54 @@ public class UIManager : MonoBehaviour
         }
 
         noiseGen.cel = true;
+    }
+
+    public void RegenTerrain()
+    {
+        init();
+
+        if (pHeight.text == "") pHeight.text = "8";
+        else
+        {
+            if (int.Parse(pHeight.text) > 0) gridGen.noiseHeight = int.Parse(pHeight.text);
+            else gridGen.noiseHeight = 8;
+        }
+
+        if (pSeed.text == "") pSeed.text = "12345";
+        else
+        {
+            if (int.Parse(pSeed.text) > 0) gridGen.seed = int.Parse(pSeed.text);
+            else gridGen.seed = 12345;
+        }
+
+        if (pNoise.text == "") pNoise.text = "0.1";
+        else
+        {
+            if (float.Parse(pNoise.text, CultureInfo.InvariantCulture) > 0) gridGen.noiseScale = float.Parse(pNoise.text, CultureInfo.InvariantCulture);
+            else gridGen.noiseScale = 0.1f;
+        }
+
+        if (pOctaves.text == "") pOctaves.text = "4";
+        else
+        {
+            if (int.Parse(pOctaves.text) > 0) gridGen.octaves = int.Parse(pOctaves.text);
+            else gridGen.octaves = 4;
+        }
+
+        if (pPersistence.text == "") pPersistence.text = "0.5";
+        else
+        {
+            if (float.Parse(pPersistence.text, CultureInfo.InvariantCulture) > 0) gridGen.persistence = float.Parse(pPersistence.text, CultureInfo.InvariantCulture);
+            else gridGen.persistence = 0.5f;
+        }
+
+        if (pLacuranity.text == "") pLacuranity.text = "2.0";
+        else
+        {
+            if (float.Parse(pLacuranity.text, CultureInfo.InvariantCulture) > 0) gridGen.lacunarity = float.Parse(pLacuranity.text, CultureInfo.InvariantCulture);
+            else gridGen.lacunarity = 2.0f;
+        }
+
+        gridGen.regenerarMapa = true;
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class FillDirt : MonoBehaviour
@@ -6,6 +7,8 @@ public class FillDirt : MonoBehaviour
     public GameObject dirtPrefab;
     public int fillDepth = 5;
     public float SeparacionGrid = 1.0f;
+
+    private List<GameObject> spawnedDirt = new List<GameObject>();
 
     void OnEnable()
     {
@@ -27,6 +30,10 @@ public class FillDirt : MonoBehaviour
             return;
         }
 
+        // Limpiar tierra existente
+        foreach (var dirt in spawnedDirt)
+            if (dirt != null) DestroyImmediate(dirt);
+
         int[,] heightMap = gridGen.heightMap;
         int sizeX = heightMap.GetLength(0);
         int sizeZ = heightMap.GetLength(1);
@@ -44,7 +51,9 @@ public class FillDirt : MonoBehaviour
                 for (int y = startY; y >= endY; y--)
                 {
                     Vector3 pos = new Vector3(x * SeparacionGrid, y, z * SeparacionGrid);
-                    Instantiate(dirtPrefab, pos, Quaternion.identity, this.transform);
+                    var dirt = Instantiate(dirtPrefab, pos, Quaternion.identity, this.transform);
+
+                    spawnedDirt.Add(dirt);
                 }
             }
         }
