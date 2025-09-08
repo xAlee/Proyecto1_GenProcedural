@@ -16,7 +16,7 @@ public class NoiseGen : MonoBehaviour
     [SerializeField] public bool cel = false;
 
     BoxelDataList dataList = new BoxelDataList();
-    [SerializeField] private CellularAutomata cellularAutomata;
+    [SerializeField] public CellularAutomata cellularAutomata;
 
     [SerializeField] private BoxelInstancer instancer;
 

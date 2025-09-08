@@ -7,16 +7,12 @@ using System.Threading.Tasks;
 
 public class CellularAutomata : MonoBehaviour
 {
-    public GameObject boxelPrefab;
-    public Material whiteCol;
-    public Material blackCol;
-
     private BoxelDataList dataList;
     private List<GameObject> currentBoxels;
     [SerializeField] private NoiseGen dataObject;
 
     // Referencia al instancer (asignar en el inspector)
-    [SerializeField] private BoxelInstancer instancer;
+    [SerializeField] public BoxelInstancer instancer;
 
     public int iterations = 1;
 
@@ -211,16 +207,6 @@ public class CellularAutomata : MonoBehaviour
             // Si quieres paralelizar, prepara posiciones en background y transforma a Matrix4x4 en main thread.
             instancer.UpdateBatchesFromDataList(dataList.items, width, height, parallel: false);
             return;
-        }
-
-        // Fallback: comportamiento original (instanciar GameObjects) si no hay instancer
-        foreach (BoxelData data in dataList.items)
-        {
-            if (data.type != 0)
-            {
-                GameObject go = Instantiate(boxelPrefab, new Vector3(data.x, 0, data.y), Quaternion.identity);
-                currentBoxels.Add(go);
-            }
         }
     }
     private int GetMaxX()
