@@ -3,15 +3,32 @@ using System.Collections.Generic;
 
 public class TreeGen : MonoBehaviour
 {
-    [SerializeField] private GameObject cubePrefab;
+    [Header("Prefabs")]
+    [SerializeField] private GameObject cubePrefab;   // Rama/tronco (Cylinder recomendado)
+    [SerializeField] private GameObject leafPrefab;   // Hoja (esfera/quad)
+
+    [Header("L-System")]
     [SerializeField] private int iterations = 3;
-
-    [SerializeField] private float angleMin = 25f;
-    [SerializeField] private float angleMax = 45f;
-
+    [SerializeField] private float angleMin = 20f;
+    [SerializeField] private float angleMax = 35f;
     [SerializeField] private float length = 1f;
-    private int roundingDecimals = 3; // controla la precisión para detectar posiciones iguales
 
+    [Header("Aspecto ramas")]
+    [SerializeField] private Vector2 branchRadius = new Vector2(0.12f, 0.2f); // radio X/Z base (min,max)
+    [SerializeField] private float leafSize = 0.35f;
+
+    [Header("Taper (afinado por profundidad)")]
+    [SerializeField, Range(0.7f, 1f)] private float radiusDecay = 0.9f;  // 0.85–0.95 recomendado
+    [SerializeField, Range(0.8f, 1f)] private float lengthDecay = 0.95f; // 1 si no quieres acortar
+
+    [Header("Aleatoriedad")]
+    [SerializeField] public bool useSeed = true;
+    [SerializeField] public int seed = 12345;
+
+    // Altura base del primitive: 2 para Cylinder (Unity), 1 para Cube
+    [SerializeField] private float primitiveBaseHeight = 2f;
+
+    private int roundingDecimals = 3; // precisión para detectar posiciones iguales
     private string axiom = "F";
     private string currentString;
 
@@ -20,76 +37,36 @@ public class TreeGen : MonoBehaviour
 
     void Start()
     {
-        rules.Add('F', "F[+F]F[-F]F[\\F][&F][^F]");
+        if (useSeed) Random.InitState(seed);
+
+        // Regla base más "arbórea"
+        rules.Clear();
+        rules.Add('F', "F[+F]F[-F]F");
 
         currentString = axiom;
         for (int i = 0; i < iterations; i++)
             currentString = ApplyRules(currentString);
+
         GenerateTree(currentString);
     }
 
     private void Update()
     {
+
         if (Input.GetKeyDown(KeyCode.O))
         {
-            Transform previousTree = transform.Find("LSystemTree");
-            if (previousTree != null)
-                Destroy(previousTree.gameObject);
-
-            GenerateRandomRule(); // <-- Aleatoriza reglas cada vez
-            currentString = axiom;
-            for (int i = 0; i < iterations; i++)
-                currentString = ApplyRules(currentString);
-            GenerateTree(currentString);
-        }
-
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            rules.Clear();
-            Transform previousTree = transform.Find("LSystemTree");
-            if (previousTree != null)
-                Destroy(previousTree.gameObject);
-
-            rules.Add('F', "F[+F]F[-F]F[\\F][&F][^F]");
-
-            currentString = axiom;
-            for (int i = 0; i < iterations; i++)
-                currentString = ApplyRules(currentString);
-
-            GenerateTree(currentString);
+            SetSeedAndRegenerate(Random.Range(int.MinValue, int.MaxValue));
         }
     }
 
-    private void GenerateRandomRule()
-    {
-        string[] directions = { "+F", "-F", "/F", "\\F", "&F", "^F" };
-        int numBranches = Random.Range(2, 7); // Número de ramas aleatorio
-        List<string> branches = new List<string>();
-
-        for (int i = 0; i < numBranches; i++)
-        {
-            string dir = directions[Random.Range(0, directions.Length)];
-            // 50% de probabilidad de poner la rama entre corchetes (ramificación)
-            if (Random.value > 0.5f)
-                branches.Add("[" + dir + "]");
-            else
-                branches.Add(dir);
-        }
-
-        // Siempre puedes agregar un 'F' central si quieres
-        string rule = "F" + string.Join("", branches);
-        rules['F'] = rule;
-    }
 
     string ApplyRules(string input)
     {
         string result = "";
         foreach (char c in input)
         {
-            if (rules.ContainsKey(c))
-                result += rules[c];
-            else
-                result += c.ToString();
+            if (rules.ContainsKey(c)) result += rules[c];
+            else result += c.ToString();
         }
         return result;
     }
@@ -98,76 +75,124 @@ public class TreeGen : MonoBehaviour
     {
         occupiedPositions.Clear();
         Stack<TransformInfo> transformStack = new Stack<TransformInfo>();
-        Vector3 position = Vector3.zero;             // punto "base" desde donde crece la siguiente sección
-        Quaternion rotation = Quaternion.identity;   // orientación "tortuga"
 
-        // Padre para mantener jerarquía ordenada
+        Vector3 posLocal = Vector3.zero;
+        Quaternion rotLocal = Quaternion.identity;
+
         Transform parent = new GameObject("LSystemTree").transform;
         parent.SetParent(this.transform, false);
+        Transform branchesParent = new GameObject("Branches").transform;
+        branchesParent.SetParent(parent, false);
+        Transform leavesParent = new GameObject("Leaves").transform;
+        leavesParent.SetParent(parent, false);
 
         foreach (char c in instructions)
         {
             switch (c)
             {
                 case 'F':
-                    // center = posición del centro del cubo (si asumimos pivot en el centro)
-                    Vector3 center = position + rotation * Vector3.up * (length * 0.5f);
-
-                    // clave redondeada para comparar posiciones (evita problemas por floats)
-                    string key = PosKey(center);
-
-                    // Si ya hay un cubo en esa posición (aprox), no lo instanciamos de nuevo
-                    if (!occupiedPositions.Contains(key))
                     {
-                        GameObject cube = Instantiate(cubePrefab, center, rotation, parent);
-                        cube.transform.localScale = new Vector3(0.2f, length, 0.2f);
-                        occupiedPositions.Add(key);
+                        int depth = transformStack.Count;
+
+                        float segLen = length * Mathf.Pow(lengthDecay, depth);
+                        float rBase = Random.Range(branchRadius.x, branchRadius.y);
+                        float r = rBase * Mathf.Pow(radiusDecay, depth);
+
+
+                        Vector3 centerLocal = posLocal + rotLocal * Vector3.up * (segLen * 0.5f);
+
+
+                        Vector3 centerWorld = transform.TransformPoint(centerLocal);
+                        Quaternion rotWorld = transform.rotation * rotLocal;
+
+                        string key = PosKey(centerWorld);
+                        if (!occupiedPositions.Contains(key))
+                        {
+                            GameObject branch = Instantiate(cubePrefab, centerWorld, rotWorld, branchesParent);
+
+                            branch.transform.localScale = new Vector3(r, segLen / primitiveBaseHeight, r);
+                            occupiedPositions.Add(key);
+                        }
+
+
+                        posLocal += rotLocal * Vector3.up * segLen;
+                        break;
                     }
 
-                    // avanzamos la "tortuga" la longitud completa (independiente de si instanciamos)
-                    position += rotation * Vector3.up * length;
+
+                case '+':
+                    rotLocal *= Quaternion.Euler(Random.Range(angleMin, angleMax), 0, Random.Range(angleMin, angleMax) * 0.5f);
                     break;
-                case '+': 
-                    rotation *= Quaternion.Euler(Random.Range(angleMin, angleMax), 
-                        0, Random.Range(angleMin, angleMax));
+                case '-':
+                    rotLocal *= Quaternion.Euler(-Random.Range(angleMin, angleMax), 0, -Random.Range(angleMin, angleMax) * 0.5f);
                     break;
-                case '-': 
-                    rotation *= Quaternion.Euler(-Random.Range(angleMin, angleMax), 
-                        0, -Random.Range(angleMin, angleMax));
+                case '&':
+                    rotLocal *= Quaternion.Euler(Random.Range(angleMin, angleMax), Random.Range(5f, angleMax * 0.6f), 0);
                     break;
-                case '&': 
-                    rotation *= Quaternion.Euler(Random.Range(angleMin, angleMax), 
-                        Random.Range(angleMin, angleMax), 0);
+                case '^':
+                    rotLocal *= Quaternion.Euler(-Random.Range(angleMin, angleMax), -Random.Range(5f, angleMax * 0.6f), 0);
                     break;
-                case '^': 
-                    rotation *= Quaternion.Euler(-Random.Range(angleMin, angleMax), 
-                        -Random.Range(angleMin, angleMax), 0);
+                case '/':
+                    rotLocal *= Quaternion.Euler(0, Random.Range(angleMin * 0.7f, angleMax), 0);
                     break;
-                case '/': 
-                    rotation *= Quaternion.Euler(0, Random.Range(angleMin, angleMax), 0);
+                case '\\':
+                    rotLocal *= Quaternion.Euler(0, -Random.Range(angleMin * 0.7f, angleMax), 0);
                     break;
-                case '\\': 
-                    rotation *= Quaternion.Euler(0, -Random.Range(angleMin, angleMax), 0);
+
+                case '[':
+                    transformStack.Push(new TransformInfo { position = posLocal, rotation = rotLocal });
+
+                    rotLocal *= Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
                     break;
-                case '[': 
-                    transformStack.Push(new TransformInfo { position = position, rotation = rotation });
-                    break;
+
                 case ']':
-                    TransformInfo ti = transformStack.Pop();
-                    position = ti.position;
-                    rotation = ti.rotation;
-                    break;
+                    {
+
+                        if (leafPrefab != null)
+                        {
+                            Vector3 leafWorld = transform.TransformPoint(posLocal);
+                            Quaternion leafRotWorld = transform.rotation * rotLocal;
+
+                            string leafKey = PosKey(leafWorld);
+                            if (!occupiedPositions.Contains(leafKey))
+                            {
+                                GameObject leaf = Instantiate(leafPrefab, leafWorld, leafRotWorld, leavesParent);
+                                int depthHere = Mathf.Max(0, transformStack.Count - 1);
+                                float scale = leafSize * Mathf.Pow(radiusDecay, depthHere + 1);
+                                leaf.transform.localScale = Vector3.one * scale;
+                                occupiedPositions.Add(leafKey);
+                            }
+                        }
+
+                        TransformInfo ti = transformStack.Pop();
+                        posLocal = ti.position;
+                        rotLocal = ti.rotation;
+                        break;
+                    }
+
                 default:
                     Debug.LogWarning($"Carácter no reconocido en instrucciones: {c}");
-                    continue;
+                    break;
             }
+        }
 
+        if (leafPrefab != null)
+        {
+            Vector3 finalLeafWorld = transform.TransformPoint(posLocal);
+            Quaternion finalRotWorld = transform.rotation * rotLocal;
+
+            string finalLeafKey = PosKey(finalLeafWorld);
+            if (!occupiedPositions.Contains(finalLeafKey))
+            {
+                GameObject leaf = Instantiate(leafPrefab, finalLeafWorld, finalRotWorld, leavesParent);
+                leaf.transform.localScale = Vector3.one * leafSize;
+                occupiedPositions.Add(finalLeafKey);
+            }
         }
     }
 
     string PosKey(Vector3 v)
     {
-        // Redondeamos a N decimales para manejar pequeñas diferencias de float
         return $"{v.x.ToString($"F{roundingDecimals}")}|{v.y.ToString($"F{roundingDecimals}")}|{v.z.ToString($"F{roundingDecimals}")}";
     }
 
@@ -176,4 +201,27 @@ public class TreeGen : MonoBehaviour
         public Vector3 position;
         public Quaternion rotation;
     }
+
+    public void RegenerateKeepRules()
+    {
+        if (useSeed) Random.InitState(seed);
+
+        // borra árbol previo
+        var previousTree = transform.Find("LSystemTree");
+        if (previousTree != null) Destroy(previousTree.gameObject);
+
+        // re-expande con LAS MISMAS reglas actuales
+        currentString = axiom;
+        for (int i = 0; i < iterations; i++)
+            currentString = ApplyRules(currentString);
+
+        GenerateTree(currentString);
+    }
+
+    public void SetSeedAndRegenerate(int newSeed)
+    {
+        seed = newSeed;
+        RegenerateKeepRules(); // MISMAS reglas, solo cambia la semilla
+    }
+
 }

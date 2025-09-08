@@ -2903,6 +2903,84 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 671400709}
   serializedVersion: 2
+  m_LocalRotation: {x: 0.1499832, y: -0, z: -0, w: 0.9886886}
+  m_LocalPosition: {x: 17.2, y: 9.5, z: -12.3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 17.252, y: 0, z: 0}
+--- !u!1 &1093218458
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1093218461}
+  - component: {fileID: 1093218460}
+  - component: {fileID: 1093218459}
+  m_Layer: 0
+  m_Name: ControladorContexto1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1093218459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093218458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e84c576857329f4f8bba4b821bcd161, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridGen: {fileID: 1093218460}
+  dirtPrefab: {fileID: 8156827366197007395, guid: 1e9213cabfe679c4fa05fb2613d249dc, type: 3}
+  fillDepth: 5
+  SeparacionGrid: 1
+--- !u!114 &1093218460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093218458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0afc41b72816714da51be1e06a5ae82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  grassPrefab: {fileID: 4023898600549144815, guid: 962f6a1a748e7eb4faefa251dbc957bb, type: 3}
+  dirtPrefab: {fileID: 8156827366197007395, guid: 1e9213cabfe679c4fa05fb2613d249dc, type: 3}
+  buildingPrefab1: {fileID: 6365533701003905363, guid: f0cbea65a04457b49a130ee57ddeb0d1, type: 3}
+  buildingPrefab2: {fileID: 8076529616539385888, guid: a8d50b6f0ab2dd347b5795e71e0f2f33, type: 3}
+  buildingPrefab3: {fileID: 6986041621333880784, guid: 09093f718c4f36d44925ac5292b3e49d, type: 3}
+  buildingPrefab4: {fileID: 9064211930359097182, guid: 5e634a2f57922ef408a1486a8fcba8d5, type: 3}
+  currentContext: 1
+  regenerarMapa: 0
+  sizeX: 40
+  sizeZ: 40
+  noiseHeight: 8
+  SeparacionGrid: 1
+  seed: 12345
+  noiseScale: 0.1
+  octaves: 4
+  persistence: 0.5
+  lacunarity: 2
+--- !u!4 &1093218461
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093218458}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 45.5, z: -78}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -7068,15 +7146,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_IgnoreLayout: 1
-  m_MinWidth: -1
-  m_MinHeight: -1
-  m_PreferredWidth: -1
-  m_PreferredHeight: -1
-  m_FlexibleWidth: -1
-  m_FlexibleHeight: -1
-  m_LayoutPriority: 1
---- !u!114 &1632402508
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1698945087}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1698945087
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
