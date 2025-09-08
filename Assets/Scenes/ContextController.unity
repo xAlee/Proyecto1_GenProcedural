@@ -446,6 +446,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   grassPrefab: {fileID: 4023898600549144815, guid: 962f6a1a748e7eb4faefa251dbc957bb, type: 3}
   dirtPrefab: {fileID: 8156827366197007395, guid: 1e9213cabfe679c4fa05fb2613d249dc, type: 3}
+  buildingPrefab1: {fileID: 6365533701003905363, guid: f0cbea65a04457b49a130ee57ddeb0d1, type: 3}
+  buildingPrefab2: {fileID: 8076529616539385888, guid: a8d50b6f0ab2dd347b5795e71e0f2f33, type: 3}
+  buildingPrefab3: {fileID: 6986041621333880784, guid: 09093f718c4f36d44925ac5292b3e49d, type: 3}
+  buildingPrefab4: {fileID: 9064211930359097182, guid: 5e634a2f57922ef408a1486a8fcba8d5, type: 3}
+  currentContext: 1
+  regenerarMapa: 0
   sizeX: 40
   sizeZ: 40
   noiseHeight: 8
@@ -903,19 +909,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1698945087}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 592232560}
-        m_TargetAssemblyTypeName: SceneChanger, Assembly-CSharp
-        m_MethodName: GoToScene2
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Context2
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1698945087
 MonoBehaviour:
   m_ObjectHideFlags: 0
