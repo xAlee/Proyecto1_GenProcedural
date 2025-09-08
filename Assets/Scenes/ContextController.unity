@@ -4769,11 +4769,14 @@ MonoBehaviour:
   obstructionMask:
     serializedVersion: 2
     m_Bits: 0
+<<<<<<< HEAD
   useSeed: 1
   masterSeed: 123456789
   houseTag: House
   useCustomRuleOverride: 0
   customRuleF: F[+F]F[-F]F
+=======
+>>>>>>> parent of 17f4a86 (UI)
 --- !u!4 &1089119342
 Transform:
   m_ObjectHideFlags: 0
